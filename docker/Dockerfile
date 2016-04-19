@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM wordpress
 MAINTAINER yourname youremail 
 RUN apt-get update && apt-get install -y \
         git \
