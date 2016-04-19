@@ -1,0 +1,88 @@
+{
+    "variables": 
+    {
+        "ssh_username": "centos",
+	"ssh_password": "",
+	"uim_primary_hub_ip": "10.1.0.4",
+	"uim_primary_hub_dom": "uimserver_domain",
+	"client_id": "",
+	"subscription_id": "",
+	"tenant_id": "",
+	"client_secret": "",
+	"resource_group_name": "uimpackerbuild",
+	"storage_account": "uimpackerbuild"
+	
+    },
+
+    "builders": 
+    [
+        {
+            "type": "azure-arm",
+
+	    "client_id": "{{user `client_id`}}",
+            "client_secret": "{{user `client_secret`}}",
+	    "resource_group_name": "uimpackerbuild",
+	    "storage_account": "uimpackerbuild",
+	    "subscription_id": "{{user `subscription_id`}}",
+	    "tenant_id": "{{user `tenant_id`}}",
+
+	    "capture_container_name": "images",
+	    "capture_name_prefix": "packer",
+
+	    "ssh_username": "{{user `ssh_username`}}",
+	    "ssh_password": "{{user `ssh_password`}}",
+
+	    "image_publisher": "OpenLogic",
+	    "image_offer": "CentOS",
+	    "image_sku": "7.1",
+	    "ssh_pty": "true",
+
+	    "location": "West US",
+	    "vm_size": "Standard_A2"
+
+        }
+    ],
+
+    "provisioners": 
+    [
+
+        {
+            "type": "shell",
+            "execute_command": "echo '{{user `ssh_password`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline":
+            [
+                "mkdir -p /tmp/uim",
+                "chmod 777 /tmp/uim",
+		"yum -q -y install cloud-init",
+		"mkdir -p /var/lib/cloud/scripts/per-instance",
+		"sleep 10"
+            ]
+        },
+
+        {
+            "type": "file",
+            "source": "uploads/uim-install.sh",
+            "destination": "/tmp/uim/uim-install.sh"
+        },
+
+        {
+            "type": "file",
+            "source": "uploads/request.cfg",
+            "destination": "/tmp/uim/request.cfg"
+        },
+
+        {
+            "type": "shell",
+            "execute_command": "echo '{{user `ssh_password`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "pause_before": "10s",
+            "environment_vars":
+            [
+                "uim_primary_hub_ip={{user `uim_primary_hub_ip`}}",
+                "uim_primary_hub_dom={{user `uim_primary_hub_dom`}}"
+            ],
+            "script": "scripts/install.sh"
+        }
+    ]
+}
+    ]
+}

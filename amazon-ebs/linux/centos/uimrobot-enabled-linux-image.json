@@ -1,0 +1,76 @@
+{
+    "variables": 
+    {
+        "user_name": "",
+        "aws_access_key": "",
+        "aws_secret_key": "",
+        "region": "us-west-2",
+        "instance_type": "t2.micro",
+        "source_ami": "ami-d440a6e7",
+        "ssh_username": "centos",
+        "uim_primary_hub_ip": ""
+    },
+
+    "builders": 
+    [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "ami_name": "{{isotime | clean_ami_name}} uim-robot-enabled-linux",
+            "instance_type": "{{user `instance_type`}}",
+            "region": "{{user `region`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "source_ami": "{{user `source_ami`}}",
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_pty": "true",
+            "tags": 
+            {
+                "author": "{{user `user_name`}}",
+                "uim_monitored": "true"
+            }
+        }
+    ],
+
+    "provisioners": 
+    [
+        {
+            "type": "shell",
+            "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "inline": 
+            [
+                "mkdir -p /tmp/uim",
+                "chmod 777 /tmp/uim"
+            ]
+        },
+
+        {
+            "type": "file",
+            "source": "uploads/uim-install.sh",
+            "destination": "/tmp/uim/uim-install.sh"
+        },
+
+        {
+            "type": "file",
+            "source": "uploads/request.cfg",
+            "destination": "/tmp/uim/request.cfg"
+        },
+
+        {
+            "type": "file",
+            "source": "uploads/ec2_security.sh",
+            "destination": "/tmp/uim/ec2_security.sh"
+        },
+
+        {
+            "type": "shell",
+            "pause_before": "10s",
+            "environment_vars": 
+            [
+                "uim_primary_hub_ip={{user `uim_primary_hub_ip`}}",
+                "uim_primary_hub_dom={{user `uim_primary_hub_dom`}}"
+            ],
+            "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "script": "scripts/install.sh"
+        }
+    ]
+}
