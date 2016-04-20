@@ -1,4 +1,8 @@
- http://$HUB_IP:8080/setupFiles/unix/nimldr.tar.Z
+#!/bin/sh
+
+cd /tmp/uim 
+
+curl -O http://$HUB_IP:8080/setupFiles/unix/nimldr.tar.Z
 curl -O http://$HUB_IP:8080/archiveFiles/install_LINUX_23_64.zip
 tar -xvf nimldr.tar.Z
 cd LINUX_23_64
